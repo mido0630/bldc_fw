@@ -24,6 +24,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "math.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -37,6 +38,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define PWM_LIMIT 1000
+#define U_H &htim1, TIM_CHANNEL_1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,6 +51,7 @@
 
 /* USER CODE BEGIN PV */
 static uint16_t adc_values[5];
+//uint16_t debug=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,11 +66,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim == &htim3){
 //    	5kHzTimer
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);//ピンの出力を切り替え
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     }
     if (htim == &htim11){
 //    	500HzTimer
-//        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);//ピンの出力を切り替え
+//        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     }
 }
 /* USER CODE END 0 */
@@ -107,34 +111,73 @@ int main(void)
   MX_TIM11_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_Base_Start_IT(&htim11);
   HAL_ADC_Start_DMA(&hadc1,(uint32_t *)adc_values, 5);
+  HAL_GPIO_WritePin (EN_GATE_GPIO_Port, EN_GATE_Pin, SET);
+
   int counter=0;
+  int power=100;
+  int delay=10;
+
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);//U_H
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);//U_L
+  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);//V_H
+  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 0);//V_L
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);//W_H
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 0);//W_L
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	  TIM1->CCR1=counter;
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, counter);
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, counter);
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, counter);
-	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, counter);
-	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, counter);
-	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, counter);
+//	  debug=sin(2*M_PI*counter/1000)*PWM_LIMIT/2+PWM_LIMIT/2;
+	  //pahse1
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, power);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, power);
+	  HAL_Delay(delay);
+	  //pahse2
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 0);
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, power);
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, power);
+	  HAL_Delay(delay);
+	  //pahse3
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, power);
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, power);
+	  HAL_Delay(delay);
+	  //phase4
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 0);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, power);
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, power);
+	  HAL_Delay(delay);
+	  //phase5
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, power);
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, power);
+	  HAL_Delay(delay);
+	  //phase6
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, power);
+	  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, power);
+	  HAL_Delay(delay);
 	  counter++;
-	  if(counter>1000)counter=0;
-//	  counter=500;
-	  HAL_Delay(1);
+	  if(counter>PWM_LIMIT)counter=0;
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
