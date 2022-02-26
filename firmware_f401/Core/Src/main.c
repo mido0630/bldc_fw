@@ -105,6 +105,7 @@ int main(void)
   while (1)
   {
 	  user_loop();
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

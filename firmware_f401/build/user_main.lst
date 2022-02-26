@@ -1,0 +1,933 @@
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"user_main.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.user_setup,"ax",%progbits
+  20              		.align	1
+  21              		.global	user_setup
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	user_setup:
+  27              	.LFB216:
+  28              		.file 1 "Core/Src/user_source/user_main.c"
+   1:Core/Src/user_source/user_main.c **** //define
+   2:Core/Src/user_source/user_main.c **** #include "user_include/user_main.h"
+   3:Core/Src/user_source/user_main.c **** #define PWM_LIMIT 1000
+   4:Core/Src/user_source/user_main.c **** #define NUM_ANGLE_SPLIT 360
+   5:Core/Src/user_source/user_main.c **** //#define AS5600_ADDR 0x36
+   6:Core/Src/user_source/user_main.c **** #define AS5600_ADDR 0x6C
+   7:Core/Src/user_source/user_main.c **** //global variable
+   8:Core/Src/user_source/user_main.c **** static uint16_t adc_values[5];
+   9:Core/Src/user_source/user_main.c **** uint16_t dbg_arr[6];
+  10:Core/Src/user_source/user_main.c **** //uint16_t sin_arr[NUM_ANGLE_SPLIT];
+  11:Core/Src/user_source/user_main.c **** uint16_t sin_arr[] = {128, 132, 136, 140, 143, 147, 151, 155, 159, 162, 166, 170, 174, 178, 181, 18
+  12:Core/Src/user_source/user_main.c **** 
+  13:Core/Src/user_source/user_main.c **** uint16_t counter_U=0;
+  14:Core/Src/user_source/user_main.c **** uint16_t counter_V=0;
+  15:Core/Src/user_source/user_main.c **** uint16_t counter_W=0;
+  16:Core/Src/user_source/user_main.c **** uint16_t power=100;
+  17:Core/Src/user_source/user_main.c **** uint16_t delay=0;
+  18:Core/Src/user_source/user_main.c **** uint16_t duty_U,duty_V,duty_W;
+  19:Core/Src/user_source/user_main.c **** uint16_t angle=0;
+  20:Core/Src/user_source/user_main.c **** uint8_t raw_data[2];
+  21:Core/Src/user_source/user_main.c **** 
+  22:Core/Src/user_source/user_main.c **** void user_setup(){
+  29              		.loc 1 22 18 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33 0000 10B5     		push	{r4, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 4, -8
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 2
+
+
+  37              		.cfi_offset 14, -4
+  23:Core/Src/user_source/user_main.c **** 	//timer start ()
+  24:Core/Src/user_source/user_main.c **** 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  38              		.loc 1 24 2 view .LVU1
+  39 0002 164C     		ldr	r4, .L3
+  40 0004 0021     		movs	r1, #0
+  41 0006 2046     		mov	r0, r4
+  42 0008 FFF7FEFF 		bl	HAL_TIM_PWM_Start
+  43              	.LVL0:
+  25:Core/Src/user_source/user_main.c **** 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  44              		.loc 1 25 2 view .LVU2
+  45 000c 0421     		movs	r1, #4
+  46 000e 2046     		mov	r0, r4
+  47 0010 FFF7FEFF 		bl	HAL_TIM_PWM_Start
+  48              	.LVL1:
+  26:Core/Src/user_source/user_main.c **** 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  49              		.loc 1 26 2 view .LVU3
+  50 0014 0821     		movs	r1, #8
+  51 0016 2046     		mov	r0, r4
+  52 0018 FFF7FEFF 		bl	HAL_TIM_PWM_Start
+  53              	.LVL2:
+  27:Core/Src/user_source/user_main.c **** 
+  28:Core/Src/user_source/user_main.c **** 	HAL_TIM_Base_Start_IT(&htim3);
+  54              		.loc 1 28 2 view .LVU4
+  55 001c 1048     		ldr	r0, .L3+4
+  56 001e FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
+  57              	.LVL3:
+  29:Core/Src/user_source/user_main.c **** 	HAL_TIM_Base_Start_IT(&htim11);
+  58              		.loc 1 29 2 view .LVU5
+  59 0022 1048     		ldr	r0, .L3+8
+  60 0024 FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
+  61              	.LVL4:
+  30:Core/Src/user_source/user_main.c **** 
+  31:Core/Src/user_source/user_main.c **** 	//others start
+  32:Core/Src/user_source/user_main.c **** 	HAL_ADC_Start_DMA(&hadc1,(uint32_t *)adc_values, 5);
+  62              		.loc 1 32 2 view .LVU6
+  63 0028 0522     		movs	r2, #5
+  64 002a 0F49     		ldr	r1, .L3+12
+  65 002c 0F48     		ldr	r0, .L3+16
+  66 002e FFF7FEFF 		bl	HAL_ADC_Start_DMA
+  67              	.LVL5:
+  33:Core/Src/user_source/user_main.c **** 
+  34:Core/Src/user_source/user_main.c **** 	//driver enable
+  35:Core/Src/user_source/user_main.c **** 	HAL_GPIO_WritePin (EN_GATE_GPIO_Port, EN_GATE_Pin, SET);
+  68              		.loc 1 35 2 view .LVU7
+  69 0032 0122     		movs	r2, #1
+  70 0034 0421     		movs	r1, #4
+  71 0036 0E48     		ldr	r0, .L3+20
+  72 0038 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  73              	.LVL6:
+  36:Core/Src/user_source/user_main.c **** 
+  37:Core/Src/user_source/user_main.c **** 	//PWM init
+  38:Core/Src/user_source/user_main.c **** 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);//U
+  74              		.loc 1 38 2 view .LVU8
+  75 003c 2368     		ldr	r3, [r4]
+  76 003e 0022     		movs	r2, #0
+  77 0040 5A63     		str	r2, [r3, #52]
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 3
+
+
+  39:Core/Src/user_source/user_main.c **** 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);//V
+  78              		.loc 1 39 2 view .LVU9
+  79 0042 9A63     		str	r2, [r3, #56]
+  40:Core/Src/user_source/user_main.c **** 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);//W
+  80              		.loc 1 40 2 view .LVU10
+  81 0044 DA63     		str	r2, [r3, #60]
+  41:Core/Src/user_source/user_main.c **** 
+  42:Core/Src/user_source/user_main.c **** 	//pre-calc sin wave
+  43:Core/Src/user_source/user_main.c **** 
+  44:Core/Src/user_source/user_main.c **** //	for(int i=0;i<NUM_ANGLE_SPLIT;i++)sin_arr[i]=sin(2*M_PI*i/NUM_ANGLE_SPLIT)*power;
+  45:Core/Src/user_source/user_main.c **** 	uint16_t phase_shift = NUM_ANGLE_SPLIT/ 3;
+  82              		.loc 1 45 2 view .LVU11
+  83              	.LVL7:
+  46:Core/Src/user_source/user_main.c **** 	counter_V=counter_U+phase_shift;
+  84              		.loc 1 46 2 view .LVU12
+  85              		.loc 1 46 21 is_stmt 0 view .LVU13
+  86 0046 0B4B     		ldr	r3, .L3+24
+  87 0048 1B88     		ldrh	r3, [r3]
+  88 004a 7833     		adds	r3, r3, #120
+  89 004c 9BB2     		uxth	r3, r3
+  90              		.loc 1 46 11 view .LVU14
+  91 004e 0A4A     		ldr	r2, .L3+28
+  92 0050 1380     		strh	r3, [r2]	@ movhi
+  47:Core/Src/user_source/user_main.c **** 	counter_W=counter_V+phase_shift;
+  93              		.loc 1 47 2 is_stmt 1 view .LVU15
+  94              		.loc 1 47 21 is_stmt 0 view .LVU16
+  95 0052 7833     		adds	r3, r3, #120
+  96              		.loc 1 47 11 view .LVU17
+  97 0054 094A     		ldr	r2, .L3+32
+  98 0056 1380     		strh	r3, [r2]	@ movhi
+  48:Core/Src/user_source/user_main.c **** 
+  49:Core/Src/user_source/user_main.c **** }
+  99              		.loc 1 49 1 view .LVU18
+ 100 0058 10BD     		pop	{r4, pc}
+ 101              	.L4:
+ 102 005a 00BF     		.align	2
+ 103              	.L3:
+ 104 005c 00000000 		.word	htim1
+ 105 0060 00000000 		.word	htim3
+ 106 0064 00000000 		.word	htim11
+ 107 0068 00000000 		.word	.LANCHOR0
+ 108 006c 00000000 		.word	hadc1
+ 109 0070 00040240 		.word	1073873920
+ 110 0074 00000000 		.word	.LANCHOR1
+ 111 0078 00000000 		.word	.LANCHOR2
+ 112 007c 00000000 		.word	.LANCHOR3
+ 113              		.cfi_endproc
+ 114              	.LFE216:
+ 116              		.section	.text.user_loop,"ax",%progbits
+ 117              		.align	1
+ 118              		.global	user_loop
+ 119              		.syntax unified
+ 120              		.thumb
+ 121              		.thumb_func
+ 123              	user_loop:
+ 124              	.LFB217:
+  50:Core/Src/user_source/user_main.c **** 
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 4
+
+
+  51:Core/Src/user_source/user_main.c **** void user_loop(){
+ 125              		.loc 1 51 17 is_stmt 1 view -0
+ 126              		.cfi_startproc
+ 127              		@ args = 0, pretend = 0, frame = 0
+ 128              		@ frame_needed = 0, uses_anonymous_args = 0
+ 129 0000 10B5     		push	{r4, lr}
+ 130              	.LCFI1:
+ 131              		.cfi_def_cfa_offset 8
+ 132              		.cfi_offset 4, -8
+ 133              		.cfi_offset 14, -4
+ 134 0002 84B0     		sub	sp, sp, #16
+ 135              	.LCFI2:
+ 136              		.cfi_def_cfa_offset 24
+  52:Core/Src/user_source/user_main.c **** 	duty_U=sin_arr[counter_U];
+ 137              		.loc 1 52 2 view .LVU20
+ 138              		.loc 1 52 16 is_stmt 0 view .LVU21
+ 139 0004 294B     		ldr	r3, .L10
+ 140 0006 2A4C     		ldr	r4, .L10+4
+ 141 0008 2288     		ldrh	r2, [r4]
+ 142 000a 33F81200 		ldrh	r0, [r3, r2, lsl #1]
+ 143              		.loc 1 52 8 view .LVU22
+ 144 000e 294A     		ldr	r2, .L10+8
+ 145 0010 1080     		strh	r0, [r2]	@ movhi
+  53:Core/Src/user_source/user_main.c **** 	duty_V=sin_arr[counter_V];
+ 146              		.loc 1 53 2 is_stmt 1 view .LVU23
+ 147              		.loc 1 53 16 is_stmt 0 view .LVU24
+ 148 0012 294A     		ldr	r2, .L10+12
+ 149 0014 1288     		ldrh	r2, [r2]
+ 150 0016 33F81210 		ldrh	r1, [r3, r2, lsl #1]
+ 151              		.loc 1 53 8 view .LVU25
+ 152 001a 284A     		ldr	r2, .L10+16
+ 153 001c 1180     		strh	r1, [r2]	@ movhi
+  54:Core/Src/user_source/user_main.c **** 	duty_W=sin_arr[counter_W];
+ 154              		.loc 1 54 2 is_stmt 1 view .LVU26
+ 155              		.loc 1 54 16 is_stmt 0 view .LVU27
+ 156 001e 284A     		ldr	r2, .L10+20
+ 157 0020 1288     		ldrh	r2, [r2]
+ 158 0022 33F81220 		ldrh	r2, [r3, r2, lsl #1]
+ 159              		.loc 1 54 8 view .LVU28
+ 160 0026 274B     		ldr	r3, .L10+24
+ 161 0028 1A80     		strh	r2, [r3]	@ movhi
+  55:Core/Src/user_source/user_main.c **** 	dbg_arr[0]=duty_U;
+ 162              		.loc 1 55 2 is_stmt 1 view .LVU29
+ 163              		.loc 1 55 12 is_stmt 0 view .LVU30
+ 164 002a 274B     		ldr	r3, .L10+28
+ 165 002c 1880     		strh	r0, [r3]	@ movhi
+  56:Core/Src/user_source/user_main.c **** 	dbg_arr[1]=duty_V;
+ 166              		.loc 1 56 2 is_stmt 1 view .LVU31
+ 167              		.loc 1 56 12 is_stmt 0 view .LVU32
+ 168 002e 5980     		strh	r1, [r3, #2]	@ movhi
+  57:Core/Src/user_source/user_main.c **** 	dbg_arr[2]=duty_W;
+ 169              		.loc 1 57 2 is_stmt 1 view .LVU33
+ 170              		.loc 1 57 12 is_stmt 0 view .LVU34
+ 171 0030 9A80     		strh	r2, [r3, #4]	@ movhi
+  58:Core/Src/user_source/user_main.c **** 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, duty_U);
+ 172              		.loc 1 58 2 is_stmt 1 view .LVU35
+ 173 0032 264B     		ldr	r3, .L10+32
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 5
+
+
+ 174 0034 1B68     		ldr	r3, [r3]
+ 175 0036 5863     		str	r0, [r3, #52]
+  59:Core/Src/user_source/user_main.c **** 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, duty_V);
+ 176              		.loc 1 59 2 view .LVU36
+ 177 0038 9963     		str	r1, [r3, #56]
+  60:Core/Src/user_source/user_main.c **** 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, duty_W);
+ 178              		.loc 1 60 2 view .LVU37
+ 179 003a DA63     		str	r2, [r3, #60]
+  61:Core/Src/user_source/user_main.c **** 	HAL_Delay(delay);
+ 180              		.loc 1 61 2 view .LVU38
+ 181 003c 244B     		ldr	r3, .L10+36
+ 182 003e 1888     		ldrh	r0, [r3]
+ 183 0040 FFF7FEFF 		bl	HAL_Delay
+ 184              	.LVL8:
+  62:Core/Src/user_source/user_main.c **** 	counter_U++;
+ 185              		.loc 1 62 2 view .LVU39
+ 186              		.loc 1 62 11 is_stmt 0 view .LVU40
+ 187 0044 2388     		ldrh	r3, [r4]
+ 188 0046 0133     		adds	r3, r3, #1
+ 189 0048 9BB2     		uxth	r3, r3
+ 190 004a 2380     		strh	r3, [r4]	@ movhi
+  63:Core/Src/user_source/user_main.c **** 	if (counter_U>NUM_ANGLE_SPLIT-1)counter_U=0;
+ 191              		.loc 1 63 2 is_stmt 1 view .LVU41
+ 192              		.loc 1 63 5 is_stmt 0 view .LVU42
+ 193 004c B3F5B47F 		cmp	r3, #360
+ 194 0050 01D3     		bcc	.L6
+ 195              		.loc 1 63 34 is_stmt 1 discriminator 1 view .LVU43
+ 196              		.loc 1 63 43 is_stmt 0 discriminator 1 view .LVU44
+ 197 0052 0022     		movs	r2, #0
+ 198 0054 2280     		strh	r2, [r4]	@ movhi
+ 199              	.L6:
+  64:Core/Src/user_source/user_main.c **** 	counter_V++;
+ 200              		.loc 1 64 2 is_stmt 1 view .LVU45
+ 201              		.loc 1 64 11 is_stmt 0 view .LVU46
+ 202 0056 184A     		ldr	r2, .L10+12
+ 203 0058 1388     		ldrh	r3, [r2]
+ 204 005a 0133     		adds	r3, r3, #1
+ 205 005c 9BB2     		uxth	r3, r3
+ 206 005e 1380     		strh	r3, [r2]	@ movhi
+  65:Core/Src/user_source/user_main.c **** 	if (counter_V>NUM_ANGLE_SPLIT-1)counter_V=0;
+ 207              		.loc 1 65 2 is_stmt 1 view .LVU47
+ 208              		.loc 1 65 5 is_stmt 0 view .LVU48
+ 209 0060 B3F5B47F 		cmp	r3, #360
+ 210 0064 02D3     		bcc	.L7
+ 211              		.loc 1 65 34 is_stmt 1 discriminator 1 view .LVU49
+ 212              		.loc 1 65 43 is_stmt 0 discriminator 1 view .LVU50
+ 213 0066 1346     		mov	r3, r2
+ 214 0068 0022     		movs	r2, #0
+ 215 006a 1A80     		strh	r2, [r3]	@ movhi
+ 216              	.L7:
+  66:Core/Src/user_source/user_main.c **** 	counter_W++;
+ 217              		.loc 1 66 2 is_stmt 1 view .LVU51
+ 218              		.loc 1 66 11 is_stmt 0 view .LVU52
+ 219 006c 144A     		ldr	r2, .L10+20
+ 220 006e 1388     		ldrh	r3, [r2]
+ 221 0070 0133     		adds	r3, r3, #1
+ 222 0072 9BB2     		uxth	r3, r3
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 6
+
+
+ 223 0074 1380     		strh	r3, [r2]	@ movhi
+  67:Core/Src/user_source/user_main.c **** 	if (counter_W>NUM_ANGLE_SPLIT-1)counter_W=0;
+ 224              		.loc 1 67 2 is_stmt 1 view .LVU53
+ 225              		.loc 1 67 5 is_stmt 0 view .LVU54
+ 226 0076 B3F5B47F 		cmp	r3, #360
+ 227 007a 02D3     		bcc	.L8
+ 228              		.loc 1 67 34 is_stmt 1 discriminator 1 view .LVU55
+ 229              		.loc 1 67 43 is_stmt 0 discriminator 1 view .LVU56
+ 230 007c 1346     		mov	r3, r2
+ 231 007e 0022     		movs	r2, #0
+ 232 0080 1A80     		strh	r2, [r3]	@ movhi
+ 233              	.L8:
+  68:Core/Src/user_source/user_main.c **** 
+  69:Core/Src/user_source/user_main.c **** 	HAL_I2C_Mem_Read(&hi2c1, AS5600_ADDR, 0x0C,I2C_MEMADD_SIZE_8BIT,raw_data,2,1);
+ 234              		.loc 1 69 2 is_stmt 1 view .LVU57
+ 235 0082 0123     		movs	r3, #1
+ 236 0084 0293     		str	r3, [sp, #8]
+ 237 0086 0222     		movs	r2, #2
+ 238 0088 0192     		str	r2, [sp, #4]
+ 239 008a 124C     		ldr	r4, .L10+40
+ 240 008c 0094     		str	r4, [sp]
+ 241 008e 0C22     		movs	r2, #12
+ 242 0090 6C21     		movs	r1, #108
+ 243 0092 1148     		ldr	r0, .L10+44
+ 244 0094 FFF7FEFF 		bl	HAL_I2C_Mem_Read
+ 245              	.LVL9:
+  70:Core/Src/user_source/user_main.c **** 	dbg_arr[5]=((raw_data[0]<<8)&0x0F00)|raw_data[1];
+ 246              		.loc 1 70 2 view .LVU58
+ 247              		.loc 1 70 23 is_stmt 0 view .LVU59
+ 248 0098 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 249              		.loc 1 70 26 view .LVU60
+ 250 009a 1B02     		lsls	r3, r3, #8
+ 251              		.loc 1 70 30 view .LVU61
+ 252 009c 03F47063 		and	r3, r3, #3840
+ 253              		.loc 1 70 47 view .LVU62
+ 254 00a0 6278     		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+ 255              		.loc 1 70 38 view .LVU63
+ 256 00a2 1343     		orrs	r3, r3, r2
+ 257              		.loc 1 70 12 view .LVU64
+ 258 00a4 084A     		ldr	r2, .L10+28
+ 259 00a6 5381     		strh	r3, [r2, #10]	@ movhi
+  71:Core/Src/user_source/user_main.c **** }
+ 260              		.loc 1 71 1 view .LVU65
+ 261 00a8 04B0     		add	sp, sp, #16
+ 262              	.LCFI3:
+ 263              		.cfi_def_cfa_offset 8
+ 264              		@ sp needed
+ 265 00aa 10BD     		pop	{r4, pc}
+ 266              	.L11:
+ 267              		.align	2
+ 268              	.L10:
+ 269 00ac 00000000 		.word	.LANCHOR4
+ 270 00b0 00000000 		.word	.LANCHOR1
+ 271 00b4 00000000 		.word	.LANCHOR5
+ 272 00b8 00000000 		.word	.LANCHOR2
+ 273 00bc 00000000 		.word	.LANCHOR6
+ 274 00c0 00000000 		.word	.LANCHOR3
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 7
+
+
+ 275 00c4 00000000 		.word	.LANCHOR7
+ 276 00c8 00000000 		.word	.LANCHOR8
+ 277 00cc 00000000 		.word	htim1
+ 278 00d0 00000000 		.word	.LANCHOR9
+ 279 00d4 00000000 		.word	.LANCHOR10
+ 280 00d8 00000000 		.word	hi2c1
+ 281              		.cfi_endproc
+ 282              	.LFE217:
+ 284              		.section	.text.HAL_TIM_PeriodElapsedCallback,"ax",%progbits
+ 285              		.align	1
+ 286              		.global	HAL_TIM_PeriodElapsedCallback
+ 287              		.syntax unified
+ 288              		.thumb
+ 289              		.thumb_func
+ 291              	HAL_TIM_PeriodElapsedCallback:
+ 292              	.LVL10:
+ 293              	.LFB218:
+  72:Core/Src/user_source/user_main.c **** 
+  73:Core/Src/user_source/user_main.c **** void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+  74:Core/Src/user_source/user_main.c **** {
+ 294              		.loc 1 74 1 is_stmt 1 view -0
+ 295              		.cfi_startproc
+ 296              		@ args = 0, pretend = 0, frame = 0
+ 297              		@ frame_needed = 0, uses_anonymous_args = 0
+ 298              		@ link register save eliminated.
+  75:Core/Src/user_source/user_main.c ****     if (htim == &htim3){//5kHzTimer
+ 299              		.loc 1 75 5 view .LVU67
+  76:Core/Src/user_source/user_main.c **** //        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+  77:Core/Src/user_source/user_main.c ****     }
+ 300              		.loc 1 77 5 view .LVU68
+  78:Core/Src/user_source/user_main.c ****     if (htim == &htim11){//500HzTimer
+ 301              		.loc 1 78 5 view .LVU69
+  79:Core/Src/user_source/user_main.c **** //        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+  80:Core/Src/user_source/user_main.c ****     }
+ 302              		.loc 1 80 5 view .LVU70
+  81:Core/Src/user_source/user_main.c **** }
+ 303              		.loc 1 81 1 is_stmt 0 view .LVU71
+ 304 0000 7047     		bx	lr
+ 305              		.cfi_endproc
+ 306              	.LFE218:
+ 308              		.global	raw_data
+ 309              		.global	angle
+ 310              		.global	duty_W
+ 311              		.global	duty_V
+ 312              		.global	duty_U
+ 313              		.global	delay
+ 314              		.global	power
+ 315              		.global	counter_W
+ 316              		.global	counter_V
+ 317              		.global	counter_U
+ 318              		.global	sin_arr
+ 319              		.global	dbg_arr
+ 320              		.section	.bss.adc_values,"aw",%nobits
+ 321              		.align	2
+ 322              		.set	.LANCHOR0,. + 0
+ 325              	adc_values:
+ 326 0000 00000000 		.space	10
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 8
+
+
+ 326      00000000 
+ 326      0000
+ 327              		.section	.bss.angle,"aw",%nobits
+ 328              		.align	1
+ 331              	angle:
+ 332 0000 0000     		.space	2
+ 333              		.section	.bss.counter_U,"aw",%nobits
+ 334              		.align	1
+ 335              		.set	.LANCHOR1,. + 0
+ 338              	counter_U:
+ 339 0000 0000     		.space	2
+ 340              		.section	.bss.counter_V,"aw",%nobits
+ 341              		.align	1
+ 342              		.set	.LANCHOR2,. + 0
+ 345              	counter_V:
+ 346 0000 0000     		.space	2
+ 347              		.section	.bss.counter_W,"aw",%nobits
+ 348              		.align	1
+ 349              		.set	.LANCHOR3,. + 0
+ 352              	counter_W:
+ 353 0000 0000     		.space	2
+ 354              		.section	.bss.dbg_arr,"aw",%nobits
+ 355              		.align	2
+ 356              		.set	.LANCHOR8,. + 0
+ 359              	dbg_arr:
+ 360 0000 00000000 		.space	12
+ 360      00000000 
+ 360      00000000 
+ 361              		.section	.bss.delay,"aw",%nobits
+ 362              		.align	1
+ 363              		.set	.LANCHOR9,. + 0
+ 366              	delay:
+ 367 0000 0000     		.space	2
+ 368              		.section	.bss.duty_U,"aw",%nobits
+ 369              		.align	1
+ 370              		.set	.LANCHOR5,. + 0
+ 373              	duty_U:
+ 374 0000 0000     		.space	2
+ 375              		.section	.bss.duty_V,"aw",%nobits
+ 376              		.align	1
+ 377              		.set	.LANCHOR6,. + 0
+ 380              	duty_V:
+ 381 0000 0000     		.space	2
+ 382              		.section	.bss.duty_W,"aw",%nobits
+ 383              		.align	1
+ 384              		.set	.LANCHOR7,. + 0
+ 387              	duty_W:
+ 388 0000 0000     		.space	2
+ 389              		.section	.bss.raw_data,"aw",%nobits
+ 390              		.align	2
+ 391              		.set	.LANCHOR10,. + 0
+ 394              	raw_data:
+ 395 0000 0000     		.space	2
+ 396              		.section	.data.power,"aw"
+ 397              		.align	1
+ 400              	power:
+ 401 0000 6400     		.short	100
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 9
+
+
+ 402              		.section	.data.sin_arr,"aw"
+ 403              		.align	2
+ 404              		.set	.LANCHOR4,. + 0
+ 407              	sin_arr:
+ 408 0000 8000     		.short	128
+ 409 0002 8400     		.short	132
+ 410 0004 8800     		.short	136
+ 411 0006 8C00     		.short	140
+ 412 0008 8F00     		.short	143
+ 413 000a 9300     		.short	147
+ 414 000c 9700     		.short	151
+ 415 000e 9B00     		.short	155
+ 416 0010 9F00     		.short	159
+ 417 0012 A200     		.short	162
+ 418 0014 A600     		.short	166
+ 419 0016 AA00     		.short	170
+ 420 0018 AE00     		.short	174
+ 421 001a B200     		.short	178
+ 422 001c B500     		.short	181
+ 423 001e B900     		.short	185
+ 424 0020 BD00     		.short	189
+ 425 0022 C000     		.short	192
+ 426 0024 C400     		.short	196
+ 427 0026 C800     		.short	200
+ 428 0028 CB00     		.short	203
+ 429 002a CF00     		.short	207
+ 430 002c D300     		.short	211
+ 431 002e D600     		.short	214
+ 432 0030 DA00     		.short	218
+ 433 0032 DD00     		.short	221
+ 434 0034 E100     		.short	225
+ 435 0036 E400     		.short	228
+ 436 0038 E800     		.short	232
+ 437 003a EB00     		.short	235
+ 438 003c EE00     		.short	238
+ 439 003e EF00     		.short	239
+ 440 0040 F000     		.short	240
+ 441 0042 F100     		.short	241
+ 442 0044 F200     		.short	242
+ 443 0046 F300     		.short	243
+ 444 0048 F400     		.short	244
+ 445 004a F500     		.short	245
+ 446 004c F600     		.short	246
+ 447 004e F700     		.short	247
+ 448 0050 F800     		.short	248
+ 449 0052 F800     		.short	248
+ 450 0054 F900     		.short	249
+ 451 0056 FA00     		.short	250
+ 452 0058 FA00     		.short	250
+ 453 005a FB00     		.short	251
+ 454 005c FC00     		.short	252
+ 455 005e FC00     		.short	252
+ 456 0060 FD00     		.short	253
+ 457 0062 FD00     		.short	253
+ 458 0064 FD00     		.short	253
+ 459 0066 FE00     		.short	254
+ 460 0068 FE00     		.short	254
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 10
+
+
+ 461 006a FE00     		.short	254
+ 462 006c FF00     		.short	255
+ 463 006e FF00     		.short	255
+ 464 0070 FF00     		.short	255
+ 465 0072 FF00     		.short	255
+ 466 0074 FF00     		.short	255
+ 467 0076 FF00     		.short	255
+ 468 0078 FF00     		.short	255
+ 469 007a FF00     		.short	255
+ 470 007c FF00     		.short	255
+ 471 007e FF00     		.short	255
+ 472 0080 FF00     		.short	255
+ 473 0082 FF00     		.short	255
+ 474 0084 FF00     		.short	255
+ 475 0086 FE00     		.short	254
+ 476 0088 FE00     		.short	254
+ 477 008a FE00     		.short	254
+ 478 008c FD00     		.short	253
+ 479 008e FD00     		.short	253
+ 480 0090 FD00     		.short	253
+ 481 0092 FC00     		.short	252
+ 482 0094 FC00     		.short	252
+ 483 0096 FB00     		.short	251
+ 484 0098 FA00     		.short	250
+ 485 009a FA00     		.short	250
+ 486 009c F900     		.short	249
+ 487 009e F800     		.short	248
+ 488 00a0 F800     		.short	248
+ 489 00a2 F700     		.short	247
+ 490 00a4 F600     		.short	246
+ 491 00a6 F500     		.short	245
+ 492 00a8 F400     		.short	244
+ 493 00aa F300     		.short	243
+ 494 00ac F200     		.short	242
+ 495 00ae F100     		.short	241
+ 496 00b0 F000     		.short	240
+ 497 00b2 EF00     		.short	239
+ 498 00b4 EE00     		.short	238
+ 499 00b6 EF00     		.short	239
+ 500 00b8 F000     		.short	240
+ 501 00ba F100     		.short	241
+ 502 00bc F200     		.short	242
+ 503 00be F300     		.short	243
+ 504 00c0 F400     		.short	244
+ 505 00c2 F500     		.short	245
+ 506 00c4 F600     		.short	246
+ 507 00c6 F700     		.short	247
+ 508 00c8 F800     		.short	248
+ 509 00ca F800     		.short	248
+ 510 00cc F900     		.short	249
+ 511 00ce FA00     		.short	250
+ 512 00d0 FA00     		.short	250
+ 513 00d2 FB00     		.short	251
+ 514 00d4 FC00     		.short	252
+ 515 00d6 FC00     		.short	252
+ 516 00d8 FD00     		.short	253
+ 517 00da FD00     		.short	253
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 11
+
+
+ 518 00dc FD00     		.short	253
+ 519 00de FE00     		.short	254
+ 520 00e0 FE00     		.short	254
+ 521 00e2 FE00     		.short	254
+ 522 00e4 FF00     		.short	255
+ 523 00e6 FF00     		.short	255
+ 524 00e8 FF00     		.short	255
+ 525 00ea FF00     		.short	255
+ 526 00ec FF00     		.short	255
+ 527 00ee FF00     		.short	255
+ 528 00f0 FF00     		.short	255
+ 529 00f2 FF00     		.short	255
+ 530 00f4 FF00     		.short	255
+ 531 00f6 FF00     		.short	255
+ 532 00f8 FF00     		.short	255
+ 533 00fa FF00     		.short	255
+ 534 00fc FF00     		.short	255
+ 535 00fe FE00     		.short	254
+ 536 0100 FE00     		.short	254
+ 537 0102 FE00     		.short	254
+ 538 0104 FD00     		.short	253
+ 539 0106 FD00     		.short	253
+ 540 0108 FD00     		.short	253
+ 541 010a FC00     		.short	252
+ 542 010c FC00     		.short	252
+ 543 010e FB00     		.short	251
+ 544 0110 FA00     		.short	250
+ 545 0112 FA00     		.short	250
+ 546 0114 F900     		.short	249
+ 547 0116 F800     		.short	248
+ 548 0118 F800     		.short	248
+ 549 011a F700     		.short	247
+ 550 011c F600     		.short	246
+ 551 011e F500     		.short	245
+ 552 0120 F400     		.short	244
+ 553 0122 F300     		.short	243
+ 554 0124 F200     		.short	242
+ 555 0126 F100     		.short	241
+ 556 0128 F000     		.short	240
+ 557 012a EF00     		.short	239
+ 558 012c EE00     		.short	238
+ 559 012e EB00     		.short	235
+ 560 0130 E800     		.short	232
+ 561 0132 E400     		.short	228
+ 562 0134 E100     		.short	225
+ 563 0136 DD00     		.short	221
+ 564 0138 DA00     		.short	218
+ 565 013a D600     		.short	214
+ 566 013c D300     		.short	211
+ 567 013e CF00     		.short	207
+ 568 0140 CB00     		.short	203
+ 569 0142 C800     		.short	200
+ 570 0144 C400     		.short	196
+ 571 0146 C000     		.short	192
+ 572 0148 BD00     		.short	189
+ 573 014a B900     		.short	185
+ 574 014c B500     		.short	181
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 12
+
+
+ 575 014e B200     		.short	178
+ 576 0150 AE00     		.short	174
+ 577 0152 AA00     		.short	170
+ 578 0154 A600     		.short	166
+ 579 0156 A200     		.short	162
+ 580 0158 9F00     		.short	159
+ 581 015a 9B00     		.short	155
+ 582 015c 9700     		.short	151
+ 583 015e 9300     		.short	147
+ 584 0160 8F00     		.short	143
+ 585 0162 8C00     		.short	140
+ 586 0164 8800     		.short	136
+ 587 0166 8400     		.short	132
+ 588 0168 8000     		.short	128
+ 589 016a 7C00     		.short	124
+ 590 016c 7800     		.short	120
+ 591 016e 7400     		.short	116
+ 592 0170 7100     		.short	113
+ 593 0172 6D00     		.short	109
+ 594 0174 6900     		.short	105
+ 595 0176 6500     		.short	101
+ 596 0178 6100     		.short	97
+ 597 017a 5E00     		.short	94
+ 598 017c 5A00     		.short	90
+ 599 017e 5600     		.short	86
+ 600 0180 5200     		.short	82
+ 601 0182 4E00     		.short	78
+ 602 0184 4B00     		.short	75
+ 603 0186 4700     		.short	71
+ 604 0188 4300     		.short	67
+ 605 018a 4000     		.short	64
+ 606 018c 3C00     		.short	60
+ 607 018e 3800     		.short	56
+ 608 0190 3500     		.short	53
+ 609 0192 3100     		.short	49
+ 610 0194 2D00     		.short	45
+ 611 0196 2A00     		.short	42
+ 612 0198 2600     		.short	38
+ 613 019a 2300     		.short	35
+ 614 019c 1F00     		.short	31
+ 615 019e 1C00     		.short	28
+ 616 01a0 1800     		.short	24
+ 617 01a2 1500     		.short	21
+ 618 01a4 1200     		.short	18
+ 619 01a6 1100     		.short	17
+ 620 01a8 1000     		.short	16
+ 621 01aa 0F00     		.short	15
+ 622 01ac 0E00     		.short	14
+ 623 01ae 0D00     		.short	13
+ 624 01b0 0C00     		.short	12
+ 625 01b2 0B00     		.short	11
+ 626 01b4 0A00     		.short	10
+ 627 01b6 0900     		.short	9
+ 628 01b8 0800     		.short	8
+ 629 01ba 0800     		.short	8
+ 630 01bc 0700     		.short	7
+ 631 01be 0600     		.short	6
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 13
+
+
+ 632 01c0 0600     		.short	6
+ 633 01c2 0500     		.short	5
+ 634 01c4 0400     		.short	4
+ 635 01c6 0400     		.short	4
+ 636 01c8 0300     		.short	3
+ 637 01ca 0300     		.short	3
+ 638 01cc 0300     		.short	3
+ 639 01ce 0200     		.short	2
+ 640 01d0 0200     		.short	2
+ 641 01d2 0200     		.short	2
+ 642 01d4 0100     		.short	1
+ 643 01d6 0100     		.short	1
+ 644 01d8 0100     		.short	1
+ 645 01da 0100     		.short	1
+ 646 01dc 0100     		.short	1
+ 647 01de 0100     		.short	1
+ 648 01e0 0100     		.short	1
+ 649 01e2 0100     		.short	1
+ 650 01e4 0100     		.short	1
+ 651 01e6 0100     		.short	1
+ 652 01e8 0100     		.short	1
+ 653 01ea 0100     		.short	1
+ 654 01ec 0100     		.short	1
+ 655 01ee 0200     		.short	2
+ 656 01f0 0200     		.short	2
+ 657 01f2 0200     		.short	2
+ 658 01f4 0300     		.short	3
+ 659 01f6 0300     		.short	3
+ 660 01f8 0300     		.short	3
+ 661 01fa 0400     		.short	4
+ 662 01fc 0400     		.short	4
+ 663 01fe 0500     		.short	5
+ 664 0200 0600     		.short	6
+ 665 0202 0600     		.short	6
+ 666 0204 0700     		.short	7
+ 667 0206 0800     		.short	8
+ 668 0208 0800     		.short	8
+ 669 020a 0900     		.short	9
+ 670 020c 0A00     		.short	10
+ 671 020e 0B00     		.short	11
+ 672 0210 0C00     		.short	12
+ 673 0212 0D00     		.short	13
+ 674 0214 0E00     		.short	14
+ 675 0216 0F00     		.short	15
+ 676 0218 1000     		.short	16
+ 677 021a 1100     		.short	17
+ 678 021c 1200     		.short	18
+ 679 021e 1100     		.short	17
+ 680 0220 1000     		.short	16
+ 681 0222 0F00     		.short	15
+ 682 0224 0E00     		.short	14
+ 683 0226 0D00     		.short	13
+ 684 0228 0C00     		.short	12
+ 685 022a 0B00     		.short	11
+ 686 022c 0A00     		.short	10
+ 687 022e 0900     		.short	9
+ 688 0230 0800     		.short	8
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 14
+
+
+ 689 0232 0800     		.short	8
+ 690 0234 0700     		.short	7
+ 691 0236 0600     		.short	6
+ 692 0238 0600     		.short	6
+ 693 023a 0500     		.short	5
+ 694 023c 0400     		.short	4
+ 695 023e 0400     		.short	4
+ 696 0240 0300     		.short	3
+ 697 0242 0300     		.short	3
+ 698 0244 0300     		.short	3
+ 699 0246 0200     		.short	2
+ 700 0248 0200     		.short	2
+ 701 024a 0200     		.short	2
+ 702 024c 0100     		.short	1
+ 703 024e 0100     		.short	1
+ 704 0250 0100     		.short	1
+ 705 0252 0100     		.short	1
+ 706 0254 0100     		.short	1
+ 707 0256 0100     		.short	1
+ 708 0258 0100     		.short	1
+ 709 025a 0100     		.short	1
+ 710 025c 0100     		.short	1
+ 711 025e 0100     		.short	1
+ 712 0260 0100     		.short	1
+ 713 0262 0100     		.short	1
+ 714 0264 0100     		.short	1
+ 715 0266 0200     		.short	2
+ 716 0268 0200     		.short	2
+ 717 026a 0200     		.short	2
+ 718 026c 0300     		.short	3
+ 719 026e 0300     		.short	3
+ 720 0270 0300     		.short	3
+ 721 0272 0400     		.short	4
+ 722 0274 0400     		.short	4
+ 723 0276 0500     		.short	5
+ 724 0278 0600     		.short	6
+ 725 027a 0600     		.short	6
+ 726 027c 0700     		.short	7
+ 727 027e 0800     		.short	8
+ 728 0280 0800     		.short	8
+ 729 0282 0900     		.short	9
+ 730 0284 0A00     		.short	10
+ 731 0286 0B00     		.short	11
+ 732 0288 0C00     		.short	12
+ 733 028a 0D00     		.short	13
+ 734 028c 0E00     		.short	14
+ 735 028e 0F00     		.short	15
+ 736 0290 1000     		.short	16
+ 737 0292 1100     		.short	17
+ 738 0294 1200     		.short	18
+ 739 0296 1500     		.short	21
+ 740 0298 1800     		.short	24
+ 741 029a 1C00     		.short	28
+ 742 029c 1F00     		.short	31
+ 743 029e 2300     		.short	35
+ 744 02a0 2600     		.short	38
+ 745 02a2 2A00     		.short	42
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 15
+
+
+ 746 02a4 2D00     		.short	45
+ 747 02a6 3100     		.short	49
+ 748 02a8 3500     		.short	53
+ 749 02aa 3800     		.short	56
+ 750 02ac 3C00     		.short	60
+ 751 02ae 4000     		.short	64
+ 752 02b0 4300     		.short	67
+ 753 02b2 4700     		.short	71
+ 754 02b4 4B00     		.short	75
+ 755 02b6 4E00     		.short	78
+ 756 02b8 5200     		.short	82
+ 757 02ba 5600     		.short	86
+ 758 02bc 5A00     		.short	90
+ 759 02be 5E00     		.short	94
+ 760 02c0 6100     		.short	97
+ 761 02c2 6500     		.short	101
+ 762 02c4 6900     		.short	105
+ 763 02c6 6D00     		.short	109
+ 764 02c8 7100     		.short	113
+ 765 02ca 7400     		.short	116
+ 766 02cc 7800     		.short	120
+ 767 02ce 7C00     		.short	124
+ 768              		.text
+ 769              	.Letext0:
+ 770              		.file 2 "c:\\tools\\arm\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 771              		.file 3 "c:\\tools\\arm\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 772              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f401xe.h"
+ 773              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
+ 774              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 775              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 776              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h"
+ 777              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h"
+ 778              		.file 10 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ 779              		.file 11 "Core/Inc/tim.h"
+ 780              		.file 12 "Core/Inc/adc.h"
+ 781              		.file 13 "Core/Inc/i2c.h"
+ 782              		.file 14 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
+ 783              		.file 15 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
+ARM GAS  C:\Users\green\AppData\Local\Temp\ccJVjGck.s 			page 16
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 user_main.c
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:20     .text.user_setup:00000000 $t
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:26     .text.user_setup:00000000 user_setup
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:104    .text.user_setup:0000005c $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:117    .text.user_loop:00000000 $t
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:123    .text.user_loop:00000000 user_loop
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:269    .text.user_loop:000000ac $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:285    .text.HAL_TIM_PeriodElapsedCallback:00000000 $t
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:291    .text.HAL_TIM_PeriodElapsedCallback:00000000 HAL_TIM_PeriodElapsedCallback
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:394    .bss.raw_data:00000000 raw_data
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:331    .bss.angle:00000000 angle
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:387    .bss.duty_W:00000000 duty_W
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:380    .bss.duty_V:00000000 duty_V
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:373    .bss.duty_U:00000000 duty_U
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:366    .bss.delay:00000000 delay
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:400    .data.power:00000000 power
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:352    .bss.counter_W:00000000 counter_W
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:345    .bss.counter_V:00000000 counter_V
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:338    .bss.counter_U:00000000 counter_U
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:407    .data.sin_arr:00000000 sin_arr
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:359    .bss.dbg_arr:00000000 dbg_arr
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:321    .bss.adc_values:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:325    .bss.adc_values:00000000 adc_values
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:328    .bss.angle:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:334    .bss.counter_U:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:341    .bss.counter_V:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:348    .bss.counter_W:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:355    .bss.dbg_arr:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:362    .bss.delay:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:369    .bss.duty_U:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:376    .bss.duty_V:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:383    .bss.duty_W:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:390    .bss.raw_data:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:397    .data.power:00000000 $d
+C:\Users\green\AppData\Local\Temp\ccJVjGck.s:403    .data.sin_arr:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_TIM_PWM_Start
+HAL_TIM_Base_Start_IT
+HAL_ADC_Start_DMA
+HAL_GPIO_WritePin
+htim1
+htim3
+htim11
+hadc1
+HAL_Delay
+HAL_I2C_Mem_Read
+hi2c1
