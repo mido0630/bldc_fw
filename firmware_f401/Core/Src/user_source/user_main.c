@@ -2,7 +2,8 @@
 #include "user_include/user_main.h"
 #define PWM_LIMIT 1000
 #define NUM_ANGLE_SPLIT 360
-
+//#define AS5600_ADDR 0x36
+#define AS5600_ADDR 0x6C
 //global variable
 static uint16_t adc_values[5];
 uint16_t dbg_arr[6];
@@ -15,17 +16,15 @@ uint16_t counter_W=0;
 uint16_t power=100;
 uint16_t delay=0;
 uint16_t duty_U,duty_V,duty_W;
+uint16_t angle=0;
+uint8_t raw_data[2];
 
 void user_setup(){
 	//timer start ()
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+
 	HAL_TIM_Base_Start_IT(&htim3);
 	HAL_TIM_Base_Start_IT(&htim11);
 
@@ -36,18 +35,17 @@ void user_setup(){
 	HAL_GPIO_WritePin (EN_GATE_GPIO_Port, EN_GATE_Pin, SET);
 
 	//PWM init
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);//U_H
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);//U_L
-	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);//V_H
-	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 0);//V_L
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);//W_H
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 0);//W_L
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);//U
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);//V
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);//W
+
 	//pre-calc sin wave
 
 //	for(int i=0;i<NUM_ANGLE_SPLIT;i++)sin_arr[i]=sin(2*M_PI*i/NUM_ANGLE_SPLIT)*power;
 	uint16_t phase_shift = NUM_ANGLE_SPLIT/ 3;
 	counter_V=counter_U+phase_shift;
 	counter_W=counter_V+phase_shift;
+
 }
 
 void user_loop(){
@@ -58,8 +56,8 @@ void user_loop(){
 	dbg_arr[1]=duty_V;
 	dbg_arr[2]=duty_W;
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, duty_U);
-	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty_V);
-	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, duty_W);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, duty_V);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, duty_W);
 	HAL_Delay(delay);
 	counter_U++;
 	if (counter_U>NUM_ANGLE_SPLIT-1)counter_U=0;
@@ -67,6 +65,9 @@ void user_loop(){
 	if (counter_V>NUM_ANGLE_SPLIT-1)counter_V=0;
 	counter_W++;
 	if (counter_W>NUM_ANGLE_SPLIT-1)counter_W=0;
+
+	HAL_I2C_Mem_Read(&hi2c1, AS5600_ADDR, 0x0C,I2C_MEMADD_SIZE_8BIT,raw_data,2,1);
+	dbg_arr[5]=((raw_data[0]<<8)&0x0F00)|raw_data[1];
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)

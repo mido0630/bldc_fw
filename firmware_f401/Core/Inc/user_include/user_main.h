@@ -4,6 +4,8 @@
 #include "main.h"
 #include "tim.h"
 #include "adc.h"
+#include "i2c.h"
+
 void user_setup(void);
 void user_loop(void);
 
